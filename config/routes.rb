@@ -6,5 +6,7 @@ Rails.application.routes.draw do
     resources :payments, only: :create
   end
 
+  get "reports/aging", to: "reports#aging", as: :aging_report
+
   get "up" => "rails/health#show", as: :rails_health_check
 end

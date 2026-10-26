@@ -1,0 +1,13 @@
+<h1>AP aging report</h1>
+<p>As of <%= l(@aging_report.as_of) %></p>
+
+<table>
+  <thead>
+    <tr><th>Vendor</th><th class="num">Total</th></tr>
+  </thead>
+  <tbody>
+    <% @aging_report.outstanding_balance_by_vendor.each do |vendor, outstanding_balance_cents| %>
+      <tr><td><%= vendor.name %></td><td class="num"><%= money(outstanding_balance_cents) %></td></tr>
+    <% end %>
+  </tbody>
+</table>
