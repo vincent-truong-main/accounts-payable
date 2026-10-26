@@ -24,4 +24,13 @@
       </tr>
     <% end %>
   </tbody>
+  <tfoot>
+    <tr>
+      <th>Grand total</th>
+      <% AgingReport::BUCKETS.each do |bucket| %>
+        <th class="num"><%= money(@aging_report.grand_total.outstanding_balance_by_bucket[bucket]) %></th>
+      <% end %>
+      <th class="num"><%= money(@aging_report.grand_total.total_cents) %></th>
+    </tr>
+  </tfoot>
 </table>

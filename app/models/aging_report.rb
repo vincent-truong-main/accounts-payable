@@ -8,6 +8,7 @@ class AgingReport
   FORMULA_TRIGGERS = [ "=", "+", "-", "@", "\t", "\r" ].freeze
 
   VendorRow = Data.define(:vendor, :outstanding_balance_by_bucket, :total_cents)
+  GrandTotal = Data.define(:outstanding_balance_by_bucket, :total_cents)
 
   attr_reader :as_of
 
@@ -16,7 +17,7 @@ class AgingReport
   end
 
   def vendor_rows
-    open_invoices.group_by(&:vendor).map do |vendor, invoices|
+    @vendor_rows ||= open_invoices.group_by(&:vendor).map do |vendor, invoices|
       outstanding_balance_by_bucket = BUCKETS.index_with(0)
 
       invoices.each do |invoice|
@@ -31,13 +32,20 @@ class AgingReport
     end.sort_by { |row| row.vendor.name }
   end
 
+  def grand_total
+    GrandTotal.new(
+      outstanding_balance_by_bucket: BUCKETS.index_with { |bucket| vendor_rows.sum { |row| row.outstanding_balance_by_bucket[bucket] } },
+      total_cents: vendor_rows.sum(&:total_cents)
+    )
+  end
+
   def to_csv
     CSV.generate do |csv|
       csv << COLUMN_HEADERS
       vendor_rows.each do |row|
-        amounts = BUCKETS.map { |bucket| row.outstanding_balance_by_bucket[bucket] } + [ row.total_cents ]
-        csv << [ excel_safe_text(row.vendor.name), *amounts.map { |cents| csv_amount(cents) } ]
+        csv << [ excel_safe_text(row.vendor.name), *csv_amounts(row) ]
       end
+      csv << [ "Grand total", *csv_amounts(grand_total) ]
     end
   end
 
@@ -46,6 +54,10 @@ class AgingReport
   # Prefix with a quote so Excel shows the text instead of running it.
   def excel_safe_text(text)
     text.start_with?(*FORMULA_TRIGGERS) ? "'#{text}" : text
+  end
+
+  def csv_amounts(row)
+    (BUCKETS.map { |bucket| row.outstanding_balance_by_bucket[bucket] } + [ row.total_cents ]).map { |cents| csv_amount(cents) }
   end
 
   # Plain decimal dollars so Excel treats the cell as a number.
