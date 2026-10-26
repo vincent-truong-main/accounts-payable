@@ -55,6 +55,21 @@ RSpec.describe AgingReport do
     end
   end
 
+  describe "#grand_total" do
+    it "adds up every vendor's outstanding balance in each bucket and overall" do
+      as_of = Date.new(2026, 9, 30)
+      2.times do
+        invoice = create(:invoice, due_on: as_of - 10.days)
+        create(:line_item, invoice: invoice, quantity: 1, unit_price_cents: 10_000)
+      end
+
+      grand_total = AgingReport.new(as_of: as_of).grand_total
+
+      expect(grand_total.outstanding_balance_by_bucket[:days_1_30]).to eq(20_000)
+      expect(grand_total.total_cents).to eq(20_000)
+    end
+  end
+
   describe "#vendor_rows" do
     context "when a vendor's only invoice is overpaid" do
       it "leaves the vendor off the report because there is no outstanding balance" do
