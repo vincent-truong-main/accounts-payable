@@ -1,7 +1,7 @@
 class PaymentsController < ApplicationController
   def create
     invoice = Invoice.find(params[:invoice_id])
-    amount_cents = (params[:payment][:amount].to_f * 100).to_i
+    amount_cents = (params[:payment][:amount].to_d * 100).to_i
 
     invoice.record_payment!(
       amount_cents: amount_cents,
