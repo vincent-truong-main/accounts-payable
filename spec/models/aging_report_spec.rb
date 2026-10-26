@@ -42,5 +42,16 @@ RSpec.describe AgingReport do
     it "ages an invoice 91 days past due into 90+ days" do
       expect(aging_bucket_for(days_past_due: 91)).to eq([ :days_over_90 ])
     end
+
+    it "ages an invoice with no due date from when we received it plus the vendor's payment terms" do
+      vendor = create(:vendor, payment_terms_days: 30)
+      invoice = create(:invoice, vendor: vendor, received_on: as_of - 40.days)
+      invoice.update_column(:due_on, nil)
+      create(:line_item, invoice: invoice, quantity: 1, unit_price_cents: 10_000)
+
+      vendor_row = AgingReport.new(as_of: as_of).vendor_rows.first
+
+      expect(vendor_row.outstanding_balance_by_bucket[:days_1_30]).to eq(10_000)
+    end
   end
 end
