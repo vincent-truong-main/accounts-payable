@@ -14,6 +14,12 @@ RSpec.describe "AP aging report", type: :request do
       expect(response.body).to include("$100.00")
     end
 
+    it "is linked from the nav" do
+      get invoices_path
+
+      expect(response.body).to include(%(href="#{aging_report_path}"))
+    end
+
     it "exports the same table as CSV for Excel" do
       vendor = create(:vendor, name: "Acme Supplies")
       invoice = create(:invoice, vendor: vendor, due_on: Date.new(2026, 9, 15))
