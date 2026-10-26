@@ -74,6 +74,27 @@ RSpec.describe Invoice, type: :model do
       expect(Invoice.overdue).to include(overdue)
       expect(Invoice.overdue).not_to include(current)
     end
+
+    it "does not treat a draft invoice as overdue, because it hasn't been approved for payment yet" do
+      draft_invoice = create(:invoice, status: "draft", due_on: Date.current - 1.day)
+
+      expect(Invoice.overdue).not_to include(draft_invoice)
+      expect(draft_invoice).not_to be_overdue
+    end
+
+    it "does not treat a void invoice as overdue, because it was rejected and isn't money we owe" do
+      void_invoice = create(:invoice, status: "void", due_on: Date.current - 1.day)
+
+      expect(Invoice.overdue).not_to include(void_invoice)
+      expect(void_invoice).not_to be_overdue
+    end
+
+    it "does not treat an invoice due today as overdue" do
+      invoice_due_today = create(:invoice, due_on: Date.current)
+
+      expect(Invoice.overdue).not_to include(invoice_due_today)
+      expect(invoice_due_today).not_to be_overdue
+    end
   end
 
   describe "#record_payment!" do
