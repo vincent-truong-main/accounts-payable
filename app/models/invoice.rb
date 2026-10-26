@@ -33,6 +33,11 @@ class Invoice < ApplicationRecord
     status == "sent" && due_on.present? && due_on < Date.current
   end
 
+  # Due the vendor's payment terms after we received it.
+  def due_on_from_terms
+    received_on + vendor.payment_terms_days.days
+  end
+
   class Overpayment < StandardError; end
 
   def record_payment!(amount_cents:, paid_on:, method: "ach")
@@ -49,6 +54,6 @@ class Invoice < ApplicationRecord
   def set_due_on
     return if received_on.blank? || vendor.blank?
 
-    self.due_on ||= received_on + vendor.payment_terms_days.days
+    self.due_on ||= due_on_from_terms
   end
 end

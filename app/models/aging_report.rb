@@ -59,7 +59,7 @@ class AgingReport
 
   # Current means not yet due; an invoice due on the as-of date isn't past due.
   def aging_bucket(invoice)
-    case (as_of - invoice.due_on).to_i
+    case (as_of - (invoice.due_on || invoice.due_on_from_terms)).to_i
     when ..0 then :current
     when 1..30 then :days_1_30
     when 31..60 then :days_31_60
