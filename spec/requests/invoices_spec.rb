@@ -20,6 +20,15 @@ RSpec.describe "Invoices", type: :request do
       expect(response.body).to include(paid.number)
       expect(response.body).not_to include(sent.number)
     end
+
+    it "searches invoice numbers as text so a crafted search can't expose other invoices" do
+      searched_invoice = create(:invoice, number: "INV-1")
+      other_invoice = create(:invoice, number: "INV-2")
+
+      get invoices_path(q: "#{searched_invoice.number}' OR number ILIKE '")
+
+      expect(response.body).not_to include(other_invoice.number)
+    end
   end
 
   describe "GET /invoices/:id" do
