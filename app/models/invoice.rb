@@ -18,7 +18,7 @@ class Invoice < ApplicationRecord
   scope :overdue, -> { where("due_on < ?", Date.current).where.not(status: "paid") }
 
   def total_cents
-    line_items.sum { |li| li.unit_price_cents }
+    line_items.sum { |li| li.total_cents }
   end
 
   def paid_cents
