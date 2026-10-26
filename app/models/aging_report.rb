@@ -55,6 +55,7 @@ class AgingReport
 
   def open_invoices
     Invoice.open.includes(:vendor, :line_items, :payments)
+      .select { |invoice| invoice.balance_due_cents.positive? }
   end
 
   # Current means not yet due; an invoice due on the as-of date isn't past due.
