@@ -22,7 +22,7 @@ class Invoice < ApplicationRecord
   end
 
   def paid_cents
-    payments.sum(:amount_cents)
+    payments.sum(&:amount_cents)
   end
 
   def balance_due_cents
