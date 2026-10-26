@@ -47,8 +47,8 @@ class Invoice < ApplicationRecord
   private
 
   def set_due_on
-    return if issued_on.blank? || vendor.blank?
+    return if received_on.blank? || vendor.blank?
 
-    self.due_on = issued_on + vendor.payment_terms_days.days
+    self.due_on ||= received_on + vendor.payment_terms_days.days
   end
 end
