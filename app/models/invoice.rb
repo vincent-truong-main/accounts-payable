@@ -14,8 +14,8 @@ class Invoice < ApplicationRecord
   before_validation :set_due_on
 
   scope :open, -> { where(status: %w[sent]) }
-  # Unpaid invoices whose due date has passed.
-  scope :overdue, -> { where("due_on < ?", Date.current).where.not(status: "paid") }
+  # Sent invoices whose due date has passed. An invoice due today is not overdue.
+  scope :overdue, -> { where(status: "sent").where("due_on < ?", Date.current) }
 
   def total_cents
     line_items.sum { |li| li.total_cents }
@@ -30,7 +30,7 @@ class Invoice < ApplicationRecord
   end
 
   def overdue?
-    status != "paid" && due_on.present? && due_on < Date.current
+    status == "sent" && due_on.present? && due_on < Date.current
   end
 
   class Overpayment < StandardError; end
