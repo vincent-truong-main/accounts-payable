@@ -10,5 +10,13 @@ RSpec.describe "Payments", type: :request do
       expect(response).to redirect_to(invoice_path(invoice))
       expect(invoice.payments.last.amount_cents).to eq(2_500)
     end
+
+    it "records the exact cents for amounts a float can't represent" do
+      invoice = create(:invoice, :with_line_items)
+
+      post invoice_payments_path(invoice), params: { payment: { amount: "1.15", paid_on: Date.current, payment_method: "check" } }
+
+      expect(invoice.payments.last.amount_cents).to eq(115)
+    end
   end
 end
