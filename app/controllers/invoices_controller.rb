@@ -1,14 +1,14 @@
 class InvoicesController < ApplicationController
   def index
-    @invoices = Invoice.order(issued_on: :desc)
+    @invoices = Invoice.includes(:vendor, :line_items, :payments).order(issued_on: :desc)
     @invoices = @invoices.where(status: params[:status]) if params[:status].present?
     @invoices = @invoices.overdue if params[:overdue].present?
-    @invoices = @invoices.where("number ILIKE '%#{params[:q]}%'") if params[:q].present?
+    @invoices = @invoices.where("number ILIKE ?", "%#{Invoice.sanitize_sql_like(params[:q])}%") if params[:q].present?
   end
 
   def show
     @invoice = Invoice.find(params[:id])
-    @payment = @invoice.payments.build(paid_on: Date.current)
+    @payment = Payment.new(invoice: @invoice, paid_on: Date.current)
   end
 
   def new

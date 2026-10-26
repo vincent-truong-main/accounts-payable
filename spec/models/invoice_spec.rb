@@ -31,6 +31,27 @@ RSpec.describe Invoice, type: :model do
 
       expect(invoice.due_on).to eq(Date.new(2026, 2, 15))
     end
+
+    it "is due the vendor's payment terms after we received it, not after the vendor issued it" do
+      vendor = create(:vendor, payment_terms_days: 30)
+      invoice = create(:invoice, vendor: vendor, issued_on: Date.new(2026, 1, 1), received_on: Date.new(2026, 1, 10))
+
+      expect(invoice.due_on).to eq(Date.new(2026, 2, 9))
+    end
+
+    it "keeps a user's due date override" do
+      invoice = create(:invoice, due_on: Date.new(2026, 3, 1))
+
+      expect(invoice.due_on).to eq(Date.new(2026, 3, 1))
+    end
+
+    it "keeps a due date override once set, even when the invoice is saved again" do
+      invoice = create(:invoice, due_on: Date.new(2026, 3, 1))
+
+      invoice.update!(notes: "Called vendor")
+
+      expect(invoice.reload.due_on).to eq(Date.new(2026, 3, 1))
+    end
   end
 
   describe "#overdue?" do
@@ -53,6 +74,27 @@ RSpec.describe Invoice, type: :model do
       expect(Invoice.overdue).to include(overdue)
       expect(Invoice.overdue).not_to include(current)
     end
+
+    it "does not treat a draft invoice as overdue, because it hasn't been approved for payment yet" do
+      draft_invoice = create(:invoice, status: "draft", due_on: Date.current - 1.day)
+
+      expect(Invoice.overdue).not_to include(draft_invoice)
+      expect(draft_invoice).not_to be_overdue
+    end
+
+    it "does not treat a void invoice as overdue, because it was rejected and isn't money we owe" do
+      void_invoice = create(:invoice, status: "void", due_on: Date.current - 1.day)
+
+      expect(Invoice.overdue).not_to include(void_invoice)
+      expect(void_invoice).not_to be_overdue
+    end
+
+    it "does not treat an invoice due today as overdue" do
+      invoice_due_today = create(:invoice, due_on: Date.current)
+
+      expect(Invoice.overdue).not_to include(invoice_due_today)
+      expect(invoice_due_today).not_to be_overdue
+    end
   end
 
   describe "#record_payment!" do
@@ -70,6 +112,7 @@ RSpec.describe Invoice, type: :model do
       invoice.record_payment!(amount_cents: invoice.total_cents, paid_on: Date.current)
 
       expect(invoice.reload.balance_due_cents).to eq(0)
+      expect(invoice.status).to eq("paid")
       expect(invoice).not_to be_overdue
     end
 

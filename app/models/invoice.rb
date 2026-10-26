@@ -14,15 +14,15 @@ class Invoice < ApplicationRecord
   before_validation :set_due_on
 
   scope :open, -> { where(status: %w[sent]) }
-  # Unpaid invoices whose due date has passed.
-  scope :overdue, -> { where("due_on < ?", Date.current).where.not(status: "paid") }
+  # Sent invoices whose due date has passed. An invoice due today is not overdue.
+  scope :overdue, -> { where(status: "sent").where("due_on < ?", Date.current) }
 
   def total_cents
-    line_items.sum { |li| li.unit_price_cents }
+    line_items.sum { |li| li.total_cents }
   end
 
   def paid_cents
-    payments.sum(:amount_cents)
+    payments.sum(&:amount_cents)
   end
 
   def balance_due_cents
@@ -30,7 +30,12 @@ class Invoice < ApplicationRecord
   end
 
   def overdue?
-    status != "paid" && due_on.present? && due_on < Date.current
+    status == "sent" && due_on.present? && due_on < Date.current
+  end
+
+  # Due the vendor's payment terms after we received it.
+  def due_on_from_terms
+    received_on + vendor.payment_terms_days.days
   end
 
   class Overpayment < StandardError; end
@@ -40,15 +45,15 @@ class Invoice < ApplicationRecord
 
     transaction do
       payments.create!(amount_cents: amount_cents, paid_on: paid_on, payment_method: method)
-      update!(status: "paid") if balance_due_cents < 0
+      update!(status: "paid") if balance_due_cents <= 0
     end
   end
 
   private
 
   def set_due_on
-    return if issued_on.blank? || vendor.blank?
+    return if received_on.blank? || vendor.blank?
 
-    self.due_on = issued_on + vendor.payment_terms_days.days
+    self.due_on ||= due_on_from_terms
   end
 end
