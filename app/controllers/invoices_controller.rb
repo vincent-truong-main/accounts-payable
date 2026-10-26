@@ -3,7 +3,7 @@ class InvoicesController < ApplicationController
     @invoices = Invoice.order(issued_on: :desc)
     @invoices = @invoices.where(status: params[:status]) if params[:status].present?
     @invoices = @invoices.overdue if params[:overdue].present?
-    @invoices = @invoices.where("number ILIKE '%#{params[:q]}%'") if params[:q].present?
+    @invoices = @invoices.where("number ILIKE ?", "%#{Invoice.sanitize_sql_like(params[:q])}%") if params[:q].present?
   end
 
   def show
