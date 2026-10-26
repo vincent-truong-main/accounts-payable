@@ -40,7 +40,7 @@ class Invoice < ApplicationRecord
 
     transaction do
       payments.create!(amount_cents: amount_cents, paid_on: paid_on, payment_method: method)
-      update!(status: "paid") if balance_due_cents < 0
+      update!(status: "paid") if balance_due_cents <= 0
     end
   end
 
