@@ -1,0 +1,15 @@
+<h1>Vendors</h1>
+<table>
+  <thead><tr><th>Name</th><th>Email</th><th class="num">Terms</th><th class="num">Invoices</th><th class="num">Outstanding</th></tr></thead>
+  <tbody>
+    <% @vendors.each do |vendor| %>
+      <tr>
+        <td><%= link_to vendor.name, vendor %></td>
+        <td><%= vendor.email %></td>
+        <td class="num">Net <%= vendor.payment_terms_days %></td>
+        <td class="num"><%= vendor.invoices.count %></td>
+        <td class="num"><%= money(vendor.outstanding_balance_cents) %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

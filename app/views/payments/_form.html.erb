@@ -1,0 +1,12 @@
+<%= form_with model: [invoice, payment], class: "stacked" do |f| %>
+  <%= f.label :amount, "Amount ($)" %>
+  <%= f.text_field :amount, placeholder: "0.00", inputmode: "decimal" %>
+
+  <%= f.label :paid_on %>
+  <%= f.date_field :paid_on %>
+
+  <%= f.label :payment_method %>
+  <%= f.select :payment_method, Payment::METHODS.map { |m| [m.upcase, m] } %>
+
+  <p><%= f.submit "Record payment", class: "button" %></p>
+<% end %>

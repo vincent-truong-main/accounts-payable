@@ -1,0 +1,35 @@
+<h1>Invoices</h1>
+
+<%= form_with url: invoices_path, method: :get, class: "filters" do |f| %>
+  <%= f.text_field :q, value: params[:q], placeholder: "Search by number" %>
+  <%= f.select :status, options_for_select([["All statuses", ""]] + Invoice::STATUSES.map { |s| [s.titleize, s] }, params[:status]) %>
+  <%= f.submit "Filter" %>
+  <%= link_to "Overdue only", invoices_path(overdue: 1), class: "button" %>
+<% end %>
+
+<table>
+  <thead>
+    <tr>
+      <th>Number</th>
+      <th>Vendor</th>
+      <th>Status</th>
+      <th>Issued</th>
+      <th>Due</th>
+      <th class="num">Total</th>
+      <th class="num">Balance</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @invoices.each do |invoice| %>
+      <tr>
+        <td><%= link_to invoice.number, invoice %></td>
+        <td><%= link_to invoice.vendor.name, invoice.vendor %></td>
+        <td><%= status_badge(invoice.status) %></td>
+        <td><%= l(invoice.issued_on) %></td>
+        <td class="<%= 'overdue' if invoice.overdue? %>"><%= invoice.due_on ? l(invoice.due_on) : "—" %></td>
+        <td class="num"><%= money(invoice.total_cents) %></td>
+        <td class="num"><%= money(invoice.balance_due_cents) %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

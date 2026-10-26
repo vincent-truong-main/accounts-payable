@@ -1,0 +1,56 @@
+<h1>Invoice <%= @invoice.number %> <%= status_badge(@invoice.status) %></h1>
+
+<div class="card">
+  <dl>
+    <dt>Vendor</dt><dd><%= link_to @invoice.vendor.name, @invoice.vendor %></dd>
+    <dt>Issued</dt><dd><%= l(@invoice.issued_on) %></dd>
+    <dt>Received</dt><dd><%= l(@invoice.received_on) %></dd>
+    <dt>Due</dt><dd class="<%= 'overdue' if @invoice.overdue? %>"><%= @invoice.due_on.strftime("%b %-d, %Y") %></dd>
+    <dt>Notes</dt><dd><%= @invoice.notes.presence || "—" %></dd>
+  </dl>
+</div>
+
+<div class="card">
+  <h2>Line items</h2>
+  <table>
+    <thead>
+      <tr><th>Description</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Total</th></tr>
+    </thead>
+    <tbody>
+      <% @invoice.line_items.each do |li| %>
+        <tr>
+          <td><%= li.description %></td>
+          <td class="num"><%= li.quantity %></td>
+          <td class="num"><%= money(li.unit_price_cents) %></td>
+          <td class="num"><%= money(li.total_cents) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+    <tfoot>
+      <tr><th colspan="3" class="num">Invoice total</th><th class="num"><%= money(@invoice.total_cents) %></th></tr>
+      <tr><th colspan="3" class="num">Paid</th><th class="num"><%= money(@invoice.paid_cents) %></th></tr>
+      <tr><th colspan="3" class="num">Balance due</th><th class="num"><%= money(@invoice.balance_due_cents) %></th></tr>
+    </tfoot>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Payments</h2>
+  <% if @invoice.payments.any? %>
+    <table>
+      <thead><tr><th>Date</th><th>Method</th><th class="num">Amount</th></tr></thead>
+      <tbody>
+        <% @invoice.payments.order(:paid_on).each do |p| %>
+          <tr><td><%= l(p.paid_on) %></td><td><%= p.payment_method.upcase %></td><td class="num"><%= money(p.amount_cents) %></td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p>No payments yet.</p>
+  <% end %>
+
+  <% unless @invoice.status.in?(%w[paid void]) %>
+    <h3>Record a payment</h3>
+    <%= render "payments/form", invoice: @invoice, payment: @payment %>
+  <% end %>
+</div>

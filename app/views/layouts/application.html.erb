@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Ledger</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag :app %>
+  </head>
+
+  <body>
+    <header>
+      <nav>
+        <%= link_to "Ledger", root_path, class: "brand" %>
+        <%= link_to "Invoices", invoices_path %>
+        <%= link_to "Vendors", vendors_path %>
+        <%= link_to "New invoice", new_invoice_path, class: "button" %>
+      </nav>
+    </header>
+
+    <main>
+      <% if notice %><p class="flash notice"><%= notice %></p><% end %>
+      <% if alert %><p class="flash alert"><%= alert %></p><% end %>
+      <%= yield %>
+    </main>
+  </body>
+</html>

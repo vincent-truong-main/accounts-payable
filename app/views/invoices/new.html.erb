@@ -1,0 +1,41 @@
+<h1>New invoice</h1>
+
+<%= form_with model: @invoice, class: "stacked" do |f| %>
+  <% if @invoice.errors.any? %>
+    <div class="errors">
+      <ul>
+        <% @invoice.errors.full_messages.each do |msg| %><li><%= msg %></li><% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= f.label :vendor_id, "Vendor" %>
+  <%= f.collection_select :vendor_id, Vendor.order(:name), :id, :name, prompt: "Select a vendor" %>
+
+  <%= f.label :number %>
+  <%= f.text_field :number %>
+
+  <%= f.label :issued_on %>
+  <%= f.date_field :issued_on %>
+
+  <%= f.label :received_on %>
+  <%= f.date_field :received_on %>
+
+  <%= f.label :due_on, "Due on (leave blank to use vendor terms)" %>
+  <%= f.date_field :due_on %>
+
+  <%= f.label :notes %>
+  <%= f.text_area :notes, rows: 3 %>
+
+  <h2>Line items</h2>
+  <div class="line-items">
+    <strong>Description</strong><strong>Qty</strong><strong>Unit price (cents)</strong>
+    <%= f.fields_for :line_items do |li| %>
+      <%= li.text_field :description %>
+      <%= li.number_field :quantity, value: li.object.quantity || 1 %>
+      <%= li.number_field :unit_price_cents %>
+    <% end %>
+  </div>
+
+  <p><%= f.submit "Create invoice", class: "button" %></p>
+<% end %>

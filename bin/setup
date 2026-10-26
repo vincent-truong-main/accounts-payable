@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+require "fileutils"
+
+APP_ROOT = File.expand_path("..", __dir__)
+ARGV.delete("--skip-server") # accepted for compatibility with bin/ci
+
+def system!(*args)
+  system(*args, exception: true)
+end
+
+FileUtils.chdir APP_ROOT do
+  puts "== Installing dependencies =="
+  system("bundle check") || system!("bundle install")
+
+  puts "\n== Preparing database =="
+  system! "bin/rails db:prepare"
+
+  puts "\n== Seeding =="
+  system! "bin/rails db:seed"
+
+  puts "\n== Done. Run bin/rails server and open http://localhost:3000 =="
+end
