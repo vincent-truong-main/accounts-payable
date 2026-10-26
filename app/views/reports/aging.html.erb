@@ -3,11 +3,25 @@
 
 <table>
   <thead>
-    <tr><th>Vendor</th><th class="num">Total</th></tr>
+    <tr>
+      <th>Vendor</th>
+      <th class="num">Current</th>
+      <th class="num">1–30 days</th>
+      <th class="num">31–60 days</th>
+      <th class="num">61–90 days</th>
+      <th class="num">90+ days</th>
+      <th class="num">Total</th>
+    </tr>
   </thead>
   <tbody>
-    <% @aging_report.outstanding_balance_by_vendor.each do |vendor, outstanding_balance_cents| %>
-      <tr><td><%= vendor.name %></td><td class="num"><%= money(outstanding_balance_cents) %></td></tr>
+    <% @aging_report.vendor_rows.each do |row| %>
+      <tr>
+        <td><%= row.vendor.name %></td>
+        <% AgingReport::BUCKETS.each do |bucket| %>
+          <td class="num"><%= money(row.outstanding_balance_by_bucket[bucket]) %></td>
+        <% end %>
+        <td class="num"><%= money(row.total_cents) %></td>
+      </tr>
     <% end %>
   </tbody>
 </table>
