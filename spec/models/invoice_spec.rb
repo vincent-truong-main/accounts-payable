@@ -31,6 +31,27 @@ RSpec.describe Invoice, type: :model do
 
       expect(invoice.due_on).to eq(Date.new(2026, 2, 15))
     end
+
+    it "is due the vendor's payment terms after we received it, not after the vendor issued it" do
+      vendor = create(:vendor, payment_terms_days: 30)
+      invoice = create(:invoice, vendor: vendor, issued_on: Date.new(2026, 1, 1), received_on: Date.new(2026, 1, 10))
+
+      expect(invoice.due_on).to eq(Date.new(2026, 2, 9))
+    end
+
+    it "keeps a user's due date override" do
+      invoice = create(:invoice, due_on: Date.new(2026, 3, 1))
+
+      expect(invoice.due_on).to eq(Date.new(2026, 3, 1))
+    end
+
+    it "keeps a due date override once set, even when the invoice is saved again" do
+      invoice = create(:invoice, due_on: Date.new(2026, 3, 1))
+
+      invoice.update!(notes: "Called vendor")
+
+      expect(invoice.reload.due_on).to eq(Date.new(2026, 3, 1))
+    end
   end
 
   describe "#overdue?" do
