@@ -54,4 +54,16 @@ RSpec.describe AgingReport do
       expect(vendor_row.outstanding_balance_by_bucket[:days_1_30]).to eq(10_000)
     end
   end
+
+  describe "#vendor_rows" do
+    context "when a vendor's only invoice is overpaid" do
+      it "leaves the vendor off the report because there is no outstanding balance" do
+        overpaid_invoice = create(:invoice)
+        create(:line_item, invoice: overpaid_invoice, quantity: 1, unit_price_cents: 10_000)
+        create(:payment, invoice: overpaid_invoice, amount_cents: 15_000)
+
+        expect(AgingReport.new(as_of: Date.current).vendor_rows).to be_empty
+      end
+    end
+  end
 end
