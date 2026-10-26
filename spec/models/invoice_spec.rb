@@ -70,6 +70,7 @@ RSpec.describe Invoice, type: :model do
       invoice.record_payment!(amount_cents: invoice.total_cents, paid_on: Date.current)
 
       expect(invoice.reload.balance_due_cents).to eq(0)
+      expect(invoice.status).to eq("paid")
       expect(invoice).not_to be_overdue
     end
 
